@@ -5,7 +5,12 @@ use std::{
     path::{Path, PathBuf},
 };
 use strum::Display;
-use tabled::{Table, Tabled};
+use tabled::settings::object::Columns;
+use tabled::settings::object::Rows;
+use tabled::{
+    Table, Tabled,
+    settings::{Color, Style},
+};
 
 #[derive(Debug, Parser)]
 #[command(version, about, long_about = "ls command built in Rust")]
@@ -36,6 +41,11 @@ fn main() {
         if does_exist {
             let get_files = get_files(&path);
             let mut table = Table::new(get_files);
+            table.with(Style::rounded());
+            table.modify(Columns::first(), Color::FG_BRIGHT_CYAN);
+            table.modify(Columns::one(2), Color::FG_BRIGHT_MAGENTA);
+            table.modify(Columns::one(3), Color::FG_BRIGHT_MAGENTA);
+            table.modify(Rows::first(), Color::FG_BRIGHT_GREEN);
             println!("{}", table);
         } else {
             println!("{}", "Path does not exist".red());
