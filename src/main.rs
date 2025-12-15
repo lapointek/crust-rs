@@ -1,3 +1,4 @@
+use chrono::{DateTime, Local, Utc};
 use clap::Parser;
 use owo_colors::OwoColorize;
 use std::{
@@ -83,7 +84,12 @@ fn map_data(file: fs::DirEntry, data: &mut Vec<FileEntry>) {
                 EntryType::File
             },
             len_bytes: meta.len(),
-            modified: "".to_string(),
+            modified: if let Ok(modi) = meta.modified() {
+                let date: DateTime<Utc> = modi.into();
+                format!("{}", date.format("%a %b %e %Y"))
+            } else {
+                String::default()
+            },
         })
     }
 }
