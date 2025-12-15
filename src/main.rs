@@ -5,6 +5,7 @@ use std::{
     path::{Path, PathBuf},
 };
 use strum::Display;
+use tabled::{Table, Tabled};
 
 #[derive(Debug, Parser)]
 #[command(version, about, long_about = "ls command built in Rust")]
@@ -18,7 +19,7 @@ enum EntryType {
     Dir,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Tabled)]
 struct FileEntry {
     name: String,
     e_type: EntryType,
@@ -33,9 +34,9 @@ fn main() {
 
     if let Ok(does_exist) = fs::exists(&path) {
         if does_exist {
-            for file in get_files(&path) {
-                println!("{:?}", file)
-            }
+            let get_files = get_files(&path);
+            let mut table = Table::new(get_files);
+            println!("{}", table);
         } else {
             println!("{}", "Path does not exist".red());
         }
