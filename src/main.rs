@@ -4,11 +4,26 @@ use std::{
     fs,
     path::{Path, PathBuf},
 };
+use strum::Display;
 
 #[derive(Debug, Parser)]
 #[command(version, about, long_about = "ls command built in Rust")]
 struct Cli {
     path: Option<PathBuf>,
+}
+
+#[derive(Debug, Display)]
+enum EntryType {
+    File,
+    Dir,
+}
+
+#[derive(Debug)]
+struct FileEntry {
+    name: String,
+    e_type: EntryType,
+    len_bytes: u64,
+    modified: String,
 }
 
 fn main() {
@@ -18,6 +33,9 @@ fn main() {
 
     if let Ok(does_exist) = fs::exists(&path) {
         if does_exist {
+            for file in get_files(&path) {
+                println!("{}", file)
+            }
         } else {
             println!("{}", "Path does not exist".red());
         }
