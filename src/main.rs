@@ -1,6 +1,7 @@
-use chrono::{DateTime, Local, Utc};
+use chrono::{DateTime, Utc};
 use clap::Parser;
 use owo_colors::OwoColorize;
+use serde::Serialize;
 use std::{
     fs,
     path::{Path, PathBuf},
@@ -17,15 +18,17 @@ use tabled::{
 #[command(version, about, long_about = "ls command built in Rust")]
 struct Cli {
     path: Option<PathBuf>,
+    #[arg(short, long)]
+    json: bool,
 }
 
-#[derive(Debug, Display)]
+#[derive(Debug, Display, Serialize)]
 enum EntryType {
     File,
     Dir,
 }
 
-#[derive(Debug, Tabled)]
+#[derive(Debug, Tabled, Serialize)]
 struct FileEntry {
     #[tabled{rename="Name"}]
     name: String,
@@ -43,20 +46,32 @@ fn main() {
 
     if let Ok(does_exist) = fs::exists(&path) {
         if does_exist {
-            let get_files = get_files(&path);
-            let mut table = Table::new(get_files);
-            table.with(Style::rounded());
-            table.modify(Columns::first(), Color::FG_BRIGHT_CYAN);
-            table.modify(Columns::one(2), Color::FG_BRIGHT_MAGENTA);
-            table.modify(Columns::one(3), Color::FG_BRIGHT_MAGENTA);
-            table.modify(Rows::first(), Color::FG_BRIGHT_GREEN);
-            println!("{}", table);
+            if cli.json {
+                let get_files = get_files(&path);
+                println!(
+                    "{}",
+                    serde_json::to_string(&get_files).unwrap_or("cannot parse json".to_string())
+                )
+            } else {
+                print_table(path);
+            }
         } else {
             println!("{}", "Path does not exist".red());
         }
     } else {
         println!("{}", "error reading directory".red());
     }
+}
+
+fn print_table(path: PathBuf) {
+    let get_files = get_files(&path);
+    let mut table = Table::new(get_files);
+    table.with(Style::rounded());
+    table.modify(Columns::first(), Color::FG_BRIGHT_CYAN);
+    table.modify(Columns::one(2), Color::FG_BRIGHT_MAGENTA);
+    table.modify(Columns::one(3), Color::FG_BRIGHT_YELLOW);
+    table.modify(Rows::first(), Color::FG_BRIGHT_GREEN);
+    println!("{}", table);
 }
 
 fn get_files(path: &Path) -> Vec<FileEntry> {
